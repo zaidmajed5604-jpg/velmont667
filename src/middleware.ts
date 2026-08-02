@@ -2,19 +2,19 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Runs on every request (per the matcher below).
+ * Runs on every request.
  *
  * Responsibilities:
- *  1. Refresh the Supabase auth session so server components always see a
- *     valid (non-expired) token.
- *  2. Gate /admin/** behind an authenticated staff/admin role.
- *  3. Apply a lightweight in-memory rate limit to /api/** as a baseline —
- *     swap `checkRateLimit` for the Upstash-backed version in
- *     src/lib/utils/rate-limit.ts once Redis is provisioned, since an
- *     in-memory counter does not survive across serverless instances.
+ * 1. Refresh Supabase auth session.
+ * 2. Protect /admin routes.
+ * 3. Protect /account routes.
+ * 4. Apply basic API rate limiting.
  */
+
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next({ request: { headers: request.headers } });
+  const response = NextResponse.next({
+    request: { headers: request.headers },
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,11 +24,38 @@ export async function middleware(request: NextRequest) {
         get(name: string) {
           return request.cookies.get(name)?.value;
         },
-        set(name: string, value: string, options) {
-          response.cookies.set({ name, value, ...options });
+
+        set(
+          name: string,
+          value: string,
+          options: {
+            path?: string;
+            maxAge?: number;
+            expires?: Date;
+            httpOnly?: boolean;
+            secure?: boolean;
+            sameSite?: "lax" | "strict" | "none";
+          },
+        ) {
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          });
         },
-        remove(name: string, options) {
-          response.cookies.set({ name, value: "", ...options, maxAge: 0 });
+
+        remove(
+          name: string,
+          options: {
+            path?: string;
+          },
+        ) {
+          response.cookies.set({
+            name,
+            value: "",
+            ...options,
+            maxAge: 0,
+          });
         },
       },
     },
@@ -40,7 +67,7 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // --- Admin route protection -------------------------------------------
+  // Admin protection
   if (pathname.startsWith("/admin")) {
     if (!user) {
       const redirectUrl = new URL("/login", request.url);
@@ -59,21 +86,32 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // --- Account route protection -------------------------------------------
+  // Account protection
   if (pathname.startsWith("/account") && !user) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // --- Baseline rate limiting on API routes -------------------------------
+  // API rate limit
   if (pathname.startsWith("/api/")) {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      "unknown";
+
     const limited = checkRateLimit(ip, pathname);
+
     if (limited) {
       return NextResponse.json(
-        { error: "Too many requests. Please try again shortly." },
-        { status: 429, headers: { "Retry-After": "30" } },
+        {
+          error: "Too many requests. Please try again shortly.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": "30",
+          },
+        },
       );
     }
   }
@@ -81,31 +119,35 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// --- In-memory sliding-window limiter -------------------------------------
-// Suitable for single-instance dev/small deployments. Replace with
-// src/lib/utils/rate-limit.ts (Upstash) for multi-instance production.
+
+// Simple in-memory rate limiter
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 60;
+
 const hits = new Map<string, number[]>();
 
 function checkRateLimit(ip: string, path: string): boolean {
   const key = `${ip}:${path.split("/").slice(0, 3).join("/")}`;
+
   const now = Date.now();
-  const timestamps = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
+
+  const timestamps = (hits.get(key) ?? []).filter(
+    (time) => now - time < WINDOW_MS,
+  );
+
   timestamps.push(now);
+
   hits.set(key, timestamps);
+
   return timestamps.length > MAX_REQUESTS;
 }
+
 
 export const config = {
   matcher: [
     "/admin/:path*",
     "/account/:path*",
     "/api/:path*",
-    /*
-     * Match all request paths except static assets, so the auth session
-     * cookie is kept fresh across normal page navigation too.
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|avif)$).*)",
   ],
 };
