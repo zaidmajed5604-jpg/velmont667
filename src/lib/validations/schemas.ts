@@ -49,6 +49,8 @@ export const checkoutSchema = z.object({
   billingAddressSameAsShipping: z.boolean(),
   billingAddress: addressSchema.optional(),
   couponCode: z.string().trim().toUpperCase().optional(),
+  shippingMethod: z.enum(["standard", "express"]).default("standard"),
+  orderNotes: z.string().trim().max(500, "Order notes must be under 500 characters.").optional(),
 });
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 

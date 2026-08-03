@@ -67,6 +67,7 @@ export async function completeOrderForPaymentIntent(paymentIntentId: string) {
     p_discount_cents: pending.discount_cents,
     p_coupon_code: pending.coupon_code,
     p_stripe_payment_intent_id: paymentIntentId,
+    p_notes: pending.notes ?? null,
   });
 
   if (orderError || !orderId) {

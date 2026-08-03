@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 interface ShopPageProps {
   searchParams: Promise<{
     category?: string;
-    filter?: "new" | "best-sellers";
+    filter?: "new" | "best-sellers" | "sale";
     sort?: "price-asc" | "price-desc" | "newest" | "rating";
     page?: string;
   }>;
@@ -35,7 +35,13 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   ]);
 
   const heading =
-    params.filter === "new" ? "New Arrivals" : params.filter === "best-sellers" ? "Best Sellers" : params.category ?? "Shop All";
+    params.filter === "new"
+      ? "New Arrivals"
+      : params.filter === "best-sellers"
+        ? "Best Sellers"
+        : params.filter === "sale"
+          ? "Sale"
+          : (params.category ?? "Shop All");
 
   return (
     <div className="container-luxury pb-section-sm pt-32 md:pb-section">

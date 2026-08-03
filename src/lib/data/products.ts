@@ -11,7 +11,7 @@ const PRODUCT_SELECT = `
 export interface ProductFilters {
   category?: string;
   collectionSlug?: string;
-  filter?: "new" | "best-sellers";
+  filter?: "new" | "best-sellers" | "sale";
   search?: string;
   sort?: "price-asc" | "price-desc" | "newest" | "rating";
   page?: number;
@@ -36,6 +36,12 @@ export async function getProducts(filters: ProductFilters = {}) {
   }
   if (filters.filter === "best-sellers") {
     query = query.eq("is_best_seller", true);
+  }
+  if (filters.filter === "sale") {
+    // A product is "on sale" when it has a compare-at price higher than
+    // its current price — no separate flag needed, this stays in sync
+    // automatically whenever an admin sets a compare-at price.
+    query = query.not("compare_at_price_cents", "is", null);
   }
   if (filters.search) {
     query = query.textSearch("search_vector", filters.search, { type: "websearch" });

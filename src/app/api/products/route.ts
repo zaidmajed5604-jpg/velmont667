@@ -6,7 +6,7 @@ import { getProducts, getProductsByIds } from "@/lib/data/products";
  *   ?ids=uuid,uuid          — batch lookup (used by Recently Viewed)
  *   ?search=query           — full-text search (used by the search overlay)
  *   ?category=Outerwear      — filter by category
- *   ?filter=new|best-sellers
+ *   ?filter=new|best-sellers|sale
  *   ?sort=price-asc|price-desc|newest|rating
  *   ?page=1&pageSize=24
  */
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const result = await getProducts({
       search: searchParams.get("search") ?? undefined,
       category: searchParams.get("category") ?? undefined,
-      filter: (searchParams.get("filter") as "new" | "best-sellers" | null) ?? undefined,
+      filter: (searchParams.get("filter") as "new" | "best-sellers" | "sale" | null) ?? undefined,
       sort: (searchParams.get("sort") as "price-asc" | "price-desc" | "newest" | "rating" | null) ?? undefined,
       page: Number(searchParams.get("page") ?? "1"),
       pageSize: Number(searchParams.get("pageSize") ?? "24"),

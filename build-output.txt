@@ -2,24 +2,33 @@
 > velmont@1.0.0 build
 > next build
 
-   ▲ Next.js 15.1.6
-   - Environments: .env.local
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\zaid_\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\zaid_\Downloads\velmont_3\velmont\package-lock.json
+   * C:\Users\zaid_\Downloads\velmont_3\package-lock.json
 
-   Creating an optimized production build ...
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (106kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (258kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ✓ Compiled successfully
-   Linting and checking validity of types ...
-Failed to compile.
+▲ Next.js 16.2.12 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  · optimizePackageImports
 
-./src/lib/stripe/server.ts:17:5
-Type error: Type '"2024-12-18.acacia"' is not assignable to type '"2025-02-24.acacia"'.
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.7s
+  Running TypeScript ...
+Failed to type check.
 
-[0m [90m 15 |[39m   }[0m
-[0m [90m 16 |[39m   [36mreturn[39m [36mnew[39m [33mStripe[39m(key[33m,[39m {[0m
-[0m[31m[1m>[22m[39m[90m 17 |[39m     apiVersion[33m:[39m [32m"2024-12-18.acacia"[39m[33m,[39m[0m
-[0m [90m    |[39m     [31m[1m^[22m[39m[0m
-[0m [90m 18 |[39m     typescript[33m:[39m [36mtrue[39m[33m,[39m[0m
-[0m [90m 19 |[39m   })[33m;[39m[0m
-[0m [90m 20 |[39m }[0m
-Static worker exited with code: 1 and signal: null
+./src/middleware.ts:27:42
+Type error: Parameter 'options' implicitly has an 'any' type.
+
+  [90m25 |[0m           [36mreturn[0m request.cookies.get(name)?.value;
+  [90m26 |[0m         },
+[31m[1m>[0m [90m27 |[0m         set(name: string, value: string, options) {
+  [90m   |[0m                                          [31m[1m^[0m
+  [90m28 |[0m           response.cookies.set({ name, value, ...options });
+  [90m29 |[0m         },
+  [90m30 |[0m         remove(name: string, options) {
+Next.js build worker exited with code: 1 and signal: null

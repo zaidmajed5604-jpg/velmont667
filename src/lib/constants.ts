@@ -5,15 +5,31 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://velmont.com
 
 export const FREE_SHIPPING_THRESHOLD_CENTS = 20000;
 export const STANDARD_SHIPPING_CENTS = 1500;
+export const EXPRESS_SHIPPING_CENTS = 3500;
 export const TAX_RATE = 0.0; // Calculated server-side at checkout based on destination.
 
+export const SHIPPING_METHODS = [
+  {
+    value: "standard",
+    label: "Standard Shipping",
+    description: "3–5 business days",
+  },
+  {
+    value: "express",
+    label: "Express Shipping",
+    description: "1–2 business days",
+  },
+] as const;
+
 export const NAV_LINKS = [
+  { label: "Home", href: "/" },
   { label: "New Arrivals", href: "/shop?filter=new" },
+  { label: "Collections", href: "/collections" },
   { label: "Tailoring", href: "/shop?category=Tailoring" },
   { label: "Outerwear", href: "/shop?category=Outerwear" },
-  { label: "Knitwear", href: "/shop?category=Knitwear" },
   { label: "Accessories", href: "/shop?category=Accessories" },
-  { label: "Collections", href: "/collections" },
+  { label: "Sale", href: "/shop?filter=sale" },
+  { label: "Contact", href: "/contact" },
 ] as const;
 
 export const MEGA_MENU_SECTIONS = [
@@ -45,6 +61,8 @@ export const FOOTER_LINKS = {
     { label: "Contact", href: "/contact" },
   ],
   Support: [
+    { label: "Size Guide", href: "/size-guide" },
+    { label: "Care Guide", href: "/care-guide" },
     { label: "Shipping", href: "/shipping" },
     { label: "Returns", href: "/returns" },
     { label: "FAQ", href: "/faq" },
@@ -58,6 +76,8 @@ export const FOOTER_LINKS = {
 export const SOCIAL_LINKS = [
   { label: "Instagram", href: "https://instagram.com" },
   { label: "Pinterest", href: "https://pinterest.com" },
+  { label: "TikTok", href: "https://tiktok.com" },
+  { label: "Facebook", href: "https://facebook.com" },
   { label: "X", href: "https://x.com" },
 ] as const;
 

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe/server";
 import { checkoutSchema, cartItemSchema } from "@/lib/validations/schemas";
-import { FREE_SHIPPING_THRESHOLD_CENTS, STANDARD_SHIPPING_CENTS } from "@/lib/constants";
+import { FREE_SHIPPING_THRESHOLD_CENTS, STANDARD_SHIPPING_CENTS, EXPRESS_SHIPPING_CENTS } from "@/lib/constants";
 import { rateLimit } from "@/lib/utils/rate-limit";
 import { z } from "zod";
 
@@ -75,7 +75,12 @@ export async function POST(request: NextRequest) {
 
   // --- Coupon validation ----------------------------------------------------
   let discountCents = 0;
-  let shippingCents = subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS ? 0 : STANDARD_SHIPPING_CENTS;
+  let shippingCents =
+    checkout.shippingMethod === "express"
+      ? EXPRESS_SHIPPING_CENTS
+      : subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS
+        ? 0
+        : STANDARD_SHIPPING_CENTS;
   const couponCode = checkout.couponCode?.trim().toUpperCase() || null;
 
   if (couponCode) {
@@ -101,6 +106,7 @@ export async function POST(request: NextRequest) {
     } else if (coupon.type === "fixed_amount" && coupon.value_cents) {
       discountCents = Math.min(coupon.value_cents, subtotalCents);
     } else if (coupon.type === "free_shipping") {
+      // Free shipping coupons discount whichever method was chosen.
       shippingCents = 0;
     }
   }
@@ -142,6 +148,8 @@ export async function POST(request: NextRequest) {
     discount_cents: discountCents,
     coupon_code: couponCode,
     user_id: user?.id ?? null,
+    shipping_method: checkout.shippingMethod,
+    notes: checkout.orderNotes || null,
   });
 
   if (pendingError) {
